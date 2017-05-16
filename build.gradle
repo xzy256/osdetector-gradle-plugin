@@ -1,0 +1,142 @@
+apply plugin: 'groovy'
+apply plugin: 'signing'
+apply plugin: 'maven'
+apply plugin: "com.gradle.plugin-publish"
+
+description = 'A Gradle plugin that detects the OS name and architecture, providing a uniform\
+ classifier to be used in the names of native artifacts.'
+group = 'com.google.gradle'
+
+// The major and minor versions are aligned with the Maven plugin's.
+version = '1.4.0'
+
+dependencies {
+  compile gradleApi(),
+          localGroovy(),
+          'kr.motd.maven:os-maven-plugin:1.4.0.Final'
+}
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.0"
+  }
+}
+
+repositories {
+  mavenCentral()
+  mavenLocal()
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.3'
+}
+
+task sourcesJar(type: Jar, dependsOn:classes) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task groovydocJar(type: Jar, dependsOn:groovydoc) {
+  classifier = 'groovydoc'
+  from groovydoc.destinationDir
+}
+
+task javadocJar(type: Jar, dependsOn:javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives sourcesJar,
+           groovydocJar,
+           javadocJar
+}
+
+signing {
+  sign configurations.archives
+}
+
+targetCompatibility = 1.6
+sourceCompatibility = 1.6
+// Releases must be built on Java 1.7 to make sure backward compatibility.
+// targetCompatibility may not be enough because Gradle may use Java APIs that
+// are not available on older Java versions.
+// See https://github.com/grpc/grpc-java/issues/805
+task checkJavaVersion << {
+  JavaVersion javaVersion = JavaVersion.current()
+    if (!javaVersion.isJava7()) {
+      throw new GradleException(
+          "The plugin must be published under Java 1.7 but ${javaVersion} is found")
+    }
+}
+uploadArchives.dependsOn checkJavaVersion
+
+uploadArchives.repositories.mavenDeployer {
+  beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+  repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+    authentication(userName:null, password:null)
+  }
+
+  snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+    authentication(userName:null, password:null)
+  }
+}
+
+[
+  install.repositories.mavenInstaller,
+  uploadArchives.repositories.mavenDeployer,
+]*.pom*.whenConfigured { pom ->
+  pom.project {
+    name "$project.group:$project.name"
+    description project.description
+    url 'https://github.com/google/osdetector-gradle-plugin'
+
+    scm {
+      connection 'scm:svn:https://github.com/google/osdetector-gradle-plugin.git'
+      developerConnection 'scm:svn:git@github.com:google/osdetector-gradle-plugin.git'
+      url 'https://github.com/google/osdetector-gradle-plugin'
+    }
+
+    licenses {
+      license {
+        name 'Apache License 2.0'
+        url 'http://opensource.org/licenses/Apache-2.0'
+      }
+    }
+
+    developers {
+      developer {
+        name 'Kun Zhang'
+        email 'zhangkun@google.com'
+        url 'https://github.com/google/osdetector-gradle-plugin'
+        organization = 'Google, Inc.'
+        organizationUrl 'https://www.google.com'
+      }
+    }
+  }
+}
+
+pluginBundle {
+  website = 'https://github.com/google/osdetector-gradle-plugin'
+  vcsUrl = 'https://github.com/google/osdetector-gradle-plugin'
+  description = 'A Gradle plugin that detects the OS name and architecture, ' +
+      'providing a uniform classifier to be used in the names of native artifacts.'
+
+  plugins {
+    protobufPlugin {
+      id = 'com.google.osdetector'
+      displayName = 'OS name and architecture detector'
+      tags = ['os', 'osdetector', 'arch', 'classifier']
+    }
+  }
+}
+
+test {
+  testLogging.showStandardStreams = true
+}
