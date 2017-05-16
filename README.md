@@ -1,3 +1,12 @@
+If you build grpc, it depends osdetector. This is built for mips64el arch
+modify build.gradle gradle.properties 
+build see 编译osdetector-grandle-plugin日记
+building log output see osdetector-gradle-plugin.log
+
+
+
+
+
 # OS Detector Plugin for Gradle
 A Gradle plugin that detects the OS name and architecture, providing a uniform
 classifier to be used in the names of native artifacts.
