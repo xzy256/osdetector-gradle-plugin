@@ -1,0 +1,36 @@
+diff --git a/build.gradle b/build.gradle
+index 1bce411..f0cf4c9 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -57,8 +57,10 @@ artifacts {
+            javadocJar
+ }
+
+-signing {
+-  sign configurations.archives
++if(project.hasProperty('sign')) {
++  signing {
++    sign configurations.archives
++  }
+ }
+
+ targetCompatibility = 1.6
+@@ -77,14 +79,16 @@ task checkJavaVersion << {
+ uploadArchives.dependsOn checkJavaVersion
+
+ uploadArchives.repositories.mavenDeployer {
+-  beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
++  if(project.hasProperty('sign')) {
++     beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
++  }
+
+   repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+-    authentication(userName: ossrhUsername, password: ossrhPassword)
++    authentication(userName: null, password: null)
+   }
+
+   snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+-    authentication(userName: ossrhUsername, password: ossrhPassword)
++    authentication(userName: null, password: null)
+   }
+ }
