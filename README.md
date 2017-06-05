@@ -1,4 +1,5 @@
-If you build grpc, it depends osdetector. This is built for mips64el arch.Modify build.gradle,gradle.properties.Build see 《编译osdetector-grandle-plugin日记》.Building log output see 《osdetector-gradle-plugin.log》
+If you build grpc, it depends osdetector. This is built for mips64el arch.Modify build.gradle,gradle.properties.Build see 《编译osdetector-grandle-plugin日记》.Building log output see 《osdetector-gradle-plugin.log》. Or you can build with no signature, see
+build-for-mips64.patch
 
 
 
